@@ -10,11 +10,11 @@ enum Slot {
 }
 
 const GameManager = () => {
-  const board_size = 6;
+  const BOARD_SIZE = 6;
 
   // init table data as a 6x6 grid filled with Slot.Empty
   const [tableData, setTableData] = useState<Slot[][]>(
-    Array.from({ length: board_size }, () => Array(board_size).fill(Slot.Empty))
+    Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(Slot.Empty))
   );
   
   const onCellClick = (rowIndex: number, colIndex: number) => {
@@ -32,9 +32,6 @@ const GameManager = () => {
       newTableData[rowIndex][colIndex] = Slot.Red;
       setTableData(newTableData);
       pushNeighborTokens(newTableData, rowIndex, colIndex);
-    }
-
-    if (isValidMove) {
       checkForWinner();
     }
   }
@@ -59,35 +56,41 @@ const GameManager = () => {
     colDelta: number
   ) => {
     if (
-      rowIndex > tableData.length ||
+      rowIndex >= tableData.length ||
       rowIndex < 0 ||
-      colIndex > tableData.length ||
+      colIndex >= tableData.length ||
       colIndex < 0 ||
       newTableData[rowIndex][colIndex] === Slot.Empty
     ) {
       console.log('cannot boop this tile. ignoring');
       return;
-    } else if (rowIndex + rowDelta > tableData.length ||
+    } else if (rowIndex + rowDelta >= tableData.length ||
       rowIndex + rowDelta < 0 ||
-      colIndex + colDelta > tableData.length ||
+      colIndex + colDelta >= tableData.length ||
       colIndex + colDelta < 0) {
-      console.log('boop destination (', rowIndex, ',', colIndex, ') is out of bounds. Token was pushed off the board');
+      // token was pushed off the board
       newTableData[rowIndex][colIndex] = Slot.Empty;
-      // if intended push destination is out of bounds, then return
-    } else {
-      // if intended push destination is in bounds AND empty, then set its value to Slot.RED
-      console.log('boop destination (', rowIndex + rowDelta, ',', colIndex + colDelta, ') is valid!');
+    } else if (newTableData[rowIndex + rowDelta][colIndex + colDelta] === Slot.Empty) {
       newTableData[rowIndex][colIndex] = Slot.Empty;
       newTableData[rowIndex + rowDelta][colIndex + colDelta] = Slot.Red;
-    }
+    } // else: destination tile is not empty, so do not push
   }; 
 
   const checkForWinner = () => {
     // todo: implement a check for any 3-in-a-rows for either player.
   }
 
+  const resetGame = () => {
+    const newTable = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(Slot.Empty));
+    setTableData(newTable);
+  }
+
   return (
-    <GameBoard tableData={tableData} onCellClick={onCellClick} />
+    <>
+      <GameBoard tableData={tableData} onCellClick={onCellClick} />
+      <button onClick={resetGame}>Reset</button>
+    </>
+    
   );
 }
 
