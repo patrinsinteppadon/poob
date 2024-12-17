@@ -27,12 +27,12 @@ const GameBoard:React.FC<SlotTableProps> = ({tableData, onCellClick}) => {
                 textAlign: "center",
                 cursor: "pointer",
                 backgroundColor:
-                  cell === Slot.Red
+                  cell === Slot.RED
                     ? "red"
-                    : cell === Slot.Blue
+                    : cell === Slot.BLUE
                     ? "blue"
                     : "white",
-                color: cell === Slot.Empty ? "gray" : "white",
+                color: cell === Slot.EMPTY ? "gray" : "white",
                 fontWeight: "bold",
               }}
             >

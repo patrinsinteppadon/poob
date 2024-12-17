@@ -2,20 +2,17 @@
 
 import React, { useState } from 'react';
 import GameBoard from './GameBoard';
-
-enum Slot {
-  Red = 'r',
-  Blue = 'b',
-  Empty = 'x',
-}
+import { InputHistory, Slot, TokenType } from './types';
 
 const GameManager = () => {
   const BOARD_SIZE = 6;
 
   // init table data as a 6x6 grid filled with Slot.Empty
   const [tableData, setTableData] = useState<Slot[][]>(
-    Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(Slot.Empty))
+    Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(Slot.EMPTY))
   );
+
+  const [inputHistoryList, setInputHistoryList] = useState<InputHistory[]>([]);
   
   const onCellClick = (rowIndex: number, colIndex: number) => {
     let isValidMove = false;
@@ -26,13 +23,14 @@ const GameManager = () => {
     console.log("cell rowIndex: %d",  rowIndex);
     console.log("cell colIndex: %d",  colIndex);
 
-    if (clickedSlot === Slot.Empty) {
+    if (clickedSlot === Slot.EMPTY) {
       console.log('placing token!');
       isValidMove = true;
-      newTableData[rowIndex][colIndex] = Slot.Red;
+      newTableData[rowIndex][colIndex] = Slot.RED;
       setTableData(newTableData);
       pushNeighborTokens(newTableData, rowIndex, colIndex);
       checkForWinner();
+      addToInputHistory(rowIndex, colIndex, Slot.RED);
     }
   }
 
@@ -60,7 +58,7 @@ const GameManager = () => {
       rowIndex < 0 ||
       colIndex >= tableData.length ||
       colIndex < 0 ||
-      newTableData[rowIndex][colIndex] === Slot.Empty
+      newTableData[rowIndex][colIndex] === Slot.EMPTY
     ) {
       console.log('cannot boop this tile. ignoring');
       return;
@@ -69,19 +67,33 @@ const GameManager = () => {
       colIndex + colDelta >= tableData.length ||
       colIndex + colDelta < 0) {
       // token was pushed off the board
-      newTableData[rowIndex][colIndex] = Slot.Empty;
-    } else if (newTableData[rowIndex + rowDelta][colIndex + colDelta] === Slot.Empty) {
-      newTableData[rowIndex][colIndex] = Slot.Empty;
-      newTableData[rowIndex + rowDelta][colIndex + colDelta] = Slot.Red;
+      newTableData[rowIndex][colIndex] = Slot.EMPTY;
+    } else if (newTableData[rowIndex + rowDelta][colIndex + colDelta] === Slot.EMPTY) {
+      newTableData[rowIndex][colIndex] = Slot.EMPTY;
+      newTableData[rowIndex + rowDelta][colIndex + colDelta] = Slot.RED;
     } // else: destination tile is not empty, so do not push
   }; 
+
+  const addToInputHistory = (rowIndex: number, colIndex: number, player: Slot.RED | Slot.BLUE) => {
+    const inputHistory: InputHistory = {
+      rowIndex,
+      colIndex,
+      player,
+      token: TokenType.KITTEN
+    }
+
+    const newInputHistoryList = inputHistoryList?.map((oldInputHistory) => oldInputHistory);
+    newInputHistoryList?.push(inputHistory);
+    setInputHistoryList(newInputHistoryList);
+    console.log("input History List", inputHistoryList);
+  }
 
   const checkForWinner = () => {
     // todo: implement a check for any 3-in-a-rows for either player.
   }
 
   const resetGame = () => {
-    const newTable = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(Slot.Empty));
+    const newTable = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(Slot.EMPTY));
     setTableData(newTable);
   }
 
