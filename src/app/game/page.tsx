@@ -1,5 +1,4 @@
 import Image from "next/image";
-import GameBoard from "./GameBoard";
 import GameManager from "./GameManager";
 
 export default function Game() {

@@ -3,6 +3,20 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 ## Poob
 A recreation of the popular board game Boop.
 
+## Feature Progress
+Currently in prototype status.
+
+By visiting the /game page, a user can click around on the board to drop pieces for the Red player, including fully supported Boop logic.
+
+The intended short-term goal for the MVP is to create a couch co-op game where two players could use the same client to play a simple game of boop
+
+## Feature To-Do List
+* 3-in-a-row detection
+* Promote tokens to chonkers
+* Switch between red and blue players
+* Drag-and-drop tokens
+* Lobby and Game Sessions
+
 ## Getting Started
 
 First, run the development server:

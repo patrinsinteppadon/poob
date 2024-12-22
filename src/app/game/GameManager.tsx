@@ -13,9 +13,14 @@ const GameManager = () => {
   );
 
   const [inputHistoryList, setInputHistoryList] = useState<InputHistory[]>([]);
+  const [winner, setWinner] = useState<string | null>(null); // To display a winner message
+
   
   const onCellClick = (rowIndex: number, colIndex: number) => {
-    let isValidMove = false;
+    if (winner !== null) {
+      return;
+    }
+
     const clickedSlot = tableData[rowIndex][colIndex];
     const newTableData = tableData.map((row) => [...row]);
 
@@ -24,26 +29,26 @@ const GameManager = () => {
     console.log("cell colIndex: %d",  colIndex);
 
     if (clickedSlot === Slot.EMPTY) {
-      console.log('placing token!');
-      isValidMove = true;
       newTableData[rowIndex][colIndex] = Slot.RED;
       setTableData(newTableData);
       pushNeighborTokens(newTableData, rowIndex, colIndex);
-      checkForWinner();
       addToInputHistory(rowIndex, colIndex, Slot.RED);
+      checkAllTiles(newTableData, Slot.RED);
+      checkForLineOfThree(newTableData, rowIndex, colIndex, Slot.RED);
+      checkForWinner();
     }
   }
 
   const pushNeighborTokens = (newTableData: Slot[][], rowIndex: number, colIndex: number) => {
     // call pushNeighbor on each of the 8 neighbors of the tile
-    pushToken(newTableData, rowIndex - 1, colIndex, -1, 0); // boop upwards
-    pushToken(newTableData, rowIndex, colIndex + 1, 0, 1); // boop rightwards
-    pushToken(newTableData, rowIndex + 1, colIndex, 1, 0); // boop downwards
-    pushToken(newTableData, rowIndex, colIndex - 1, 0, -1); // boop leftwards
+    pushToken(newTableData, rowIndex - 1, colIndex, -1, 0); // boop up
+    pushToken(newTableData, rowIndex, colIndex + 1, 0, 1); // boop right
+    pushToken(newTableData, rowIndex + 1, colIndex, 1, 0); // boop down
+    pushToken(newTableData, rowIndex, colIndex - 1, 0, -1); // boop left
     pushToken(newTableData, rowIndex -1, colIndex + 1, -1, 1); // boop up right
     pushToken(newTableData, rowIndex -1, colIndex - 1, -1, -1); // boop up left
     pushToken(newTableData, rowIndex + 1, colIndex - 1, 1, -1); // boop down left
-    pushToken(newTableData, rowIndex + 1, colIndex + 1, 1, 1); // boop rightwards
+    pushToken(newTableData, rowIndex + 1, colIndex + 1, 1, 1); // boop down right
   }
 
   const pushToken = (
@@ -60,7 +65,7 @@ const GameManager = () => {
       colIndex < 0 ||
       newTableData[rowIndex][colIndex] === Slot.EMPTY
     ) {
-      console.log('cannot boop this tile. ignoring');
+      // no token to push
       return;
     } else if (rowIndex + rowDelta >= tableData.length ||
       rowIndex + rowDelta < 0 ||
@@ -74,6 +79,72 @@ const GameManager = () => {
     } // else: destination tile is not empty, so do not push
   }; 
 
+  const checkAllTiles = (table: Slot[][], slotColor: Slot.RED | Slot.BLUE) => {
+    for (let i = 1; i < BOARD_SIZE - 1; i++) {
+      for (let j = 1; j < BOARD_SIZE - 1; j++) {
+        checkForLineOfThree(table, i, j, slotColor);
+      }
+    }
+  }
+
+  /**
+   * counts consecutive tokens in any given direction
+   */
+  const checkForLineOfThree = (table: Slot[][], row: number, col: number, slotColor: Slot.RED | Slot.BLUE): boolean => {
+    const checkLine = (firstSlot: Slot, secondSlot: Slot, thirdSlot: Slot) => {
+      console.log('table', table);
+      console.log('firstSlot', firstSlot);
+      console.log('secondSlot', secondSlot);
+      console.log('thirdSlot', thirdSlot);
+      if (firstSlot === slotColor && secondSlot === slotColor && thirdSlot === slotColor) {
+        if (winner !== null && winner !== slotColor) {
+          console.log('we found a tie!');
+        }
+        setWinner(Slot.RED);
+        return true;
+      }
+      return false;
+    }
+
+    if (row < 1 || col < 1 || row >= BOARD_SIZE - 1 || col >= BOARD_SIZE - 1) {
+      console.log('corner or edge slot found, returning');
+      return false;
+    }
+    const firstSlot = table[row][col];
+    let secondSlot;
+    let thirdSlot;
+
+    // vertical line
+    secondSlot = table[row - 1][col];
+    thirdSlot = table[row + 1][col];
+    if (checkLine(firstSlot, secondSlot, thirdSlot)) {
+      return true;
+    }
+
+    // horizontal line
+    secondSlot = table[row][col - 1];
+    thirdSlot = table[row][col + 1];
+    if (checkLine(firstSlot, secondSlot, thirdSlot)) {
+      return true;
+    }
+
+    // upleft to downright diagonal
+    secondSlot = table[row - 1][col - 1];
+    thirdSlot = table[row + 1][col + 1];
+    if (checkLine(firstSlot, secondSlot, thirdSlot)) {
+      return true;
+    }
+
+    // downleft to upright diagonal
+    secondSlot = table[row + 1][col - 1];
+    thirdSlot = table[row - 1][col + 1];
+    if (checkLine(firstSlot, secondSlot, thirdSlot)) {
+      return true;
+    }
+
+    return false;
+  };
+
   const addToInputHistory = (rowIndex: number, colIndex: number, player: Slot.RED | Slot.BLUE) => {
     const inputHistory: InputHistory = {
       rowIndex,
@@ -85,16 +156,21 @@ const GameManager = () => {
     const newInputHistoryList = inputHistoryList?.map((oldInputHistory) => oldInputHistory);
     newInputHistoryList?.push(inputHistory);
     setInputHistoryList(newInputHistoryList);
-    console.log("input History List", inputHistoryList);
   }
 
+  // todo: this doesnt trigger, because setWinner is resolving asynchronously after our checkForWinner call
   const checkForWinner = () => {
-    // todo: implement a check for any 3-in-a-rows for either player.
+    if (winner !== null) {
+      const victoryString = winner + ' is the winner!!';
+      alert(victoryString);
+      console.log(victoryString);
+    }
   }
 
   const resetGame = () => {
     const newTable = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(Slot.EMPTY));
     setTableData(newTable);
+    setWinner(null);
   }
 
   return (

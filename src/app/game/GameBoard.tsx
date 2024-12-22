@@ -10,7 +10,6 @@ interface SlotTableProps {
 
 const GameBoard:React.FC<SlotTableProps> = ({tableData, onCellClick}) => {
 
-  // use onPointer instead of onMouseDown
   return (
     <table style={{ borderCollapse: "collapse", width: "100%" }}>
       <tbody>
@@ -19,7 +18,7 @@ const GameBoard:React.FC<SlotTableProps> = ({tableData, onCellClick}) => {
             {row.map((cell, colIndex) => (
               <td
               key={colIndex}
-              onClick={() => onCellClick(rowIndex, colIndex)}
+              onPointerDown={() => onCellClick(rowIndex, colIndex)}
               style={{
                 border: "1px solid black",
                 width: "50px",
