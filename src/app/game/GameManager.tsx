@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Image from "next/image";
 import GameBoard from './GameBoard';
 import { InputHistory, Slot, TokenType } from './types';
 
@@ -14,19 +15,21 @@ const GameManager = () => {
 
   const [inputHistoryList, setInputHistoryList] = useState<InputHistory[]>([]);
   const [winner, setWinner] = useState<string | null>(null); // To display a winner message
-
+  const [gameStatusText, setGameStatusText] = useState<string>("Welcome to the Game Board");
+  const [redPlayerKittens, setRedPlayerKittens] = useState<number>(8);
+  const [bluePlayerKittens, setBluePlayerKittens] = useState<number>(8);
   
   const onCellClick = (rowIndex: number, colIndex: number) => {
-    if (winner !== null) {
+    if (winner !== null) {  // todo: doesn't update gameStatusText until one click AFTER the winning click
       return;
     }
 
     const clickedSlot = tableData[rowIndex][colIndex];
     const newTableData = tableData.map((row) => [...row]);
 
-    console.log("cell clicked! Value is ", clickedSlot);
-    console.log("cell rowIndex: %d",  rowIndex);
-    console.log("cell colIndex: %d",  colIndex);
+    // console.log("cell clicked! Value is ", clickedSlot);
+    // console.log("cell rowIndex: %d",  rowIndex);
+    // console.log("cell colIndex: %d",  colIndex);
 
     if (clickedSlot === Slot.EMPTY) {
       newTableData[rowIndex][colIndex] = Slot.RED;
@@ -92,11 +95,8 @@ const GameManager = () => {
    */
   const checkForLineOfThree = (table: Slot[][], row: number, col: number, slotColor: Slot.RED | Slot.BLUE): boolean => {
     const checkLine = (firstSlot: Slot, secondSlot: Slot, thirdSlot: Slot) => {
-      console.log('table', table);
-      console.log('firstSlot', firstSlot);
-      console.log('secondSlot', secondSlot);
-      console.log('thirdSlot', thirdSlot);
       if (firstSlot === slotColor && secondSlot === slotColor && thirdSlot === slotColor) {
+        console.log('we have a winner!');
         if (winner !== null && winner !== slotColor) {
           console.log('we found a tie!');
         }
@@ -107,8 +107,7 @@ const GameManager = () => {
     }
 
     if (row < 1 || col < 1 || row >= BOARD_SIZE - 1 || col >= BOARD_SIZE - 1) {
-      console.log('corner or edge slot found, returning');
-      return false;
+      return false; // found a corner or edge slot, therefore do nothing
     }
     const firstSlot = table[row][col];
     let secondSlot;
@@ -162,8 +161,7 @@ const GameManager = () => {
   const checkForWinner = () => {
     if (winner !== null) {
       const victoryString = winner + ' is the winner!!';
-      alert(victoryString);
-      console.log(victoryString);
+      setGameStatusText(victoryString);
     }
   }
 
@@ -171,12 +169,26 @@ const GameManager = () => {
     const newTable = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(Slot.EMPTY));
     setTableData(newTable);
     setWinner(null);
+    setGameStatusText("Welcome to the Game Board");
   }
 
   return (
     <>
-      <GameBoard tableData={tableData} onCellClick={onCellClick} />
+    <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
+        <Image
+          className="dark:invert"
+          src="/booptitle.webp"
+          alt="boop title"
+          width={250}
+          height={100}
+          priority
+        />
+        <h1>{gameStatusText}</h1>
+        <GameBoard tableData={tableData} onCellClick={onCellClick} />
+      </main>
+      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
       <button onClick={resetGame}>Reset</button>
+      </footer>
     </>
     
   );
